@@ -1,0 +1,43 @@
+{% extends 'base.html'  %}
+{% load static %}
+{% block content  %}
+							<!-- Content -->
+								<section>
+									<header class="main">
+										<h1>Welcome to Cooking Blog</h1>
+									</header>
+									{% if messages %}
+									<ul class="messages">
+										{% for message in messages %}
+										<div class="alert alert-success" role="alert">{{ message }}</div>
+										{% endfor %}
+									</ul>
+									{% endif %}
+
+
+									<span class="image main"><img src=" {% static 'images/food_blog.jpg' %}" style="width:auto; height:auto" alt="" /></span>
+									<h2>About</h2>
+									<p>I am a Food Blog is a recipe & travel blog written by husband and wife team Mike & Steph. In its 7 years of existence it has covered such diverse subjects as mini beef wellingtons, driving through iceland’s ring road, and making pho in a pressure cooker.</p>
+									<p>Currently eating and cooking in California :)</p>
+									<p>Interested in working with us? Occasionally we create sponsored posts for brands that are a good fit for I am a Food Blog. We’re also available for recipe development & photography. Send us a quick email for more info!</p>
+
+									<hr class="major" />
+
+									<h2>Recipes</h2>
+									<div class="posts">
+										{% for recipe in recipes  %}
+										<article>
+											<a href="#" class="image"><img src="{{ recipe.get_image }}" style="width:200px; height: 200px " alt="(" /></a>
+											<h3>{{ recipe }}</h3>
+											<p>{{ recipe.description|truncatewords:10  }}</p>
+											<ul class="actions">
+												<li><a href="{% url 'detail'  recipe.id  %}" class="button">More</a></li>
+											</ul>
+										</article>
+										{% endfor  %}
+
+									</div>
+
+								</section>
+
+{% endblock  %}
