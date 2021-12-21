@@ -7,7 +7,9 @@
 										<header>
 											<h1>{{ category.name }}</h1>
 										</header>
-										<p></p>
+										<p>When most bloggers start blogging, categories are kind of an afterthought.  Nobody explained how or why to set up categories strategically and so many food blogs end up with a disjointed list of both broad and narrow subjects.
+
+It’s never too late to get your categories in order though, so if you’ve already been blogging for a while, don’t panic, I’ll help you get to work fixing it!</p>
 										{% if category.get_children %}
 										{% for child in category.get_children  %}
 										<a  href="{% url 'category' child.slug %}">
@@ -15,7 +17,7 @@
 										</a>
 										{% endfor %}
 										{% endif  %}
-=									</div>
+								</div>
 									<span class="image object">
 										<img src="{{  category.image.url  }}" style="width: 500px; height:500px" alt="none" >
 									</span>

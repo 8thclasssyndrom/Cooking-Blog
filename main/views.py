@@ -1,6 +1,12 @@
+from datetime import timedelta
+
+from django.db.models import Q
 from django.forms import modelformset_factory
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.generic import ListView, DetailView, DeleteView
 
 from .forms import RecipeForm, ImageForm
 from .models import *
@@ -10,10 +16,32 @@ from django.contrib import messages
 #     recipes = Recipe.objects.all()
 #     return render(request, 'index.html', {'recipes': recipes})
 
+
 class MainPageView(ListView):
     model = Recipe
     template_name = 'index.html'
     context_object_name = 'recipes'
+    paginate_by = 2
+
+    def get_template_names(self):
+        template_name = super(MainPageView,self).get_template_names()
+        search = self.request.GET.get('search')
+        if search:
+            template_name = 'search.html'
+        return template_name
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search = self.request.GET.get('search')
+        filter = self.request.GET.get('filter')
+        if search:
+            context['recipes'] = Recipe.objects.filter(Q(title__icontains=search)|Q(description__icontains=search))
+        elif filter:
+            start_date = timezone.now() - timedelta(days=1)
+            context['recipes'] = Recipe.objects.filter(created__gte=start_date)
+        else:
+            context['recipes'] = Recipe.objects.all()
+        return context
 
 # def category_detail(request, slug):
 #     category = Category.objects.get(slug=slug)
@@ -28,22 +56,31 @@ class CategoryDetailView(DetailView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        print(kwargs)
+        self.slug = kwargs.get('slug', None)
         return super().get(request, *args, **kwargs)
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['recipes'] = Recipe.objects.filter(category_id=slug)
+        context['recipes'] = Recipe.objects.filter(category_id=self.slug)
         return context
 
+# def recipe_detail(request, pk):
+#     recipe = get_object_or_404(Recipe, pk=pk)
+#     image = recipe.get_image
+#     images = recipe.images.exclude(id=image.id)
+#     return render(request, 'recipe-detail.html', locals())
 
 
-def recipe_detail(request, pk):
-    recipe = get_object_or_404(Recipe, pk=pk)
-    image = recipe.get_image
-    images = recipe.images.exclude(id=image.id)
-    return render(request, 'recipe-detail.html', locals())
+class RecipeDetailView(DetailView):
+    model = Recipe
+    template_name = 'recipe-detail.html'
+    context_object_name = 'recipe'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        image = self.get_object().get_image
+        context['images'] = self.get_object().images.exclude(id=image.id)
+        return context
 
 
 def add_recipe(request):
@@ -81,12 +118,26 @@ def update_recipe(request, pk):
     return render(request, 'update-recipe.html', locals())
 
 
-def delete_recipe(request, pk):
-    recipe = get_object_or_404(Recipe, pk=pk)
-    if request.method =='POST':
-        recipe.delete()
-        messages.add_message(request, messages.SUCCESS, 'Successfully deleted')
-        return redirect('home')
-    return render(request, 'delete-recipe.html')
+# def delete_recipe(request, pk):
+#     recipe = get_object_or_404(Recipe, pk=pk)
+#     if request.method =='POST':
+#         recipe.delete()
+#         messages.add_message(request, messages.SUCCESS, 'Successfully deleted')
+#         return redirect('home')
+#     return render(request, 'delete-recipe.html')
+
+class DeleteRecipeView(DeleteView):
+    model = Recipe
+    template_name = 'delete-recipe.html'
+    success_url = reverse_lazy('home')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+        messages.add_message(request, messages.SUCCESS, 'Successfully deleted!')
+        return HttpResponseRedirect(success_url)
+
+
 
 
