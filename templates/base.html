@@ -21,7 +21,12 @@
 								<header id="header">
 									<a href="index.html" class="logo"><strong>Cooking</strong> Blog</a>
 									<ul class="icons">
-										<a href="#"  ><i class="fa fa-registered" aria-hidden="true"></i></a>
+										{% if not request.user.is_authenticated  %}
+										<a href="{% url 'register'  %}" ><i class="fa fa-registered" aria-hidden="true">Sign up</i></a>
+										<a href="{% url 'login'  %}"><i class="fa fa-sign-in" aria-hidden="true">Sign in</i></a>
+										{% else  %}
+										<a href="{% url 'logout'  %}"><i class="fa fa-sign-out" aria-hidden="true" >Sign out</i></a>
+										{% endif  %}
 									</ul>
 								</header>
                             {% block content %}{% endblock %}
@@ -47,6 +52,10 @@
 									</header>
 									<ul>
 										<li><a href="{% url 'home' %}">Homepage</a></li>
+										{% if request.user.is_authenticated  %}
+										<li><a href="{% url 'profile' %}">My profile</a></li>
+										{% endif  %}
+
 
 										<li>
 											<span class="opener">Categories</span>
